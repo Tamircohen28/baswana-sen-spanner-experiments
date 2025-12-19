@@ -8,8 +8,7 @@ from .stretch import (
 )
 from .experiments import (
     run_single_experiment,
-    run_experiment_suite,
-    save_results
+    run_experiment_suite
 )
 from .metrics import aggregate_results
 
@@ -20,7 +19,6 @@ __all__ = [
     'compute_stretch_sampled_pairs',
     'run_single_experiment',
     'run_experiment_suite',
-    'save_results',
     'aggregate_results',
 ]
 

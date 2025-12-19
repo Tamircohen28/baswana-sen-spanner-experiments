@@ -1,7 +1,7 @@
 """Erdős–Rényi graph generation."""
 
 from collections import deque
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -35,7 +35,7 @@ def _extract_largest_component(graph: Dict[int, List[int]]) -> Tuple[Dict[int, L
     Returns:
         Tuple of (component_graph, n_original, n_connected)
     """
-    visited = set()
+    visited = set[Any]()
     components = []
     
     for vertex in graph:
@@ -48,7 +48,7 @@ def _extract_largest_component(graph: Dict[int, List[int]]) -> Tuple[Dict[int, L
     
     # Find largest component
     largest_component = max(components, key=len)
-    largest_set = set(largest_component)
+    largest_set = set[Any](largest_component)
     
     # Create mapping from old vertex labels to new (0..n-1)
     vertex_map = {old_v: new_v for new_v, old_v in enumerate(largest_component)}
