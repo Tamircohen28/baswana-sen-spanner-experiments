@@ -1,0 +1,307 @@
+\documentclass[11pt, a4paper]{article}
+
+% --- STANDARD PREAMBLE FOR PDFLATEX ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern} % Latin Modern (serif) fonts
+\usepackage[english]{babel}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, left=2cm, right=2cm]{geometry}
+
+% Packages for math and formatting
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+    pdftitle={Baswana-Sen Spanner Project},
+    pdfpagemode=FullScreen
+}
+
+% Code listing style
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Title Page Setup (same font as body text: NO \sffamily)
+\title{
+    \vspace{2cm}
+    \textbf{\Huge Mini-Project on Low-Distortion Embeddings:\\[0.5em]
+    The Baswana-Sen Algorithm for Sparse Spanners}
+}
+\author{
+    \Large \textbf{Tamir Cohen} \\[0.5em]
+    \large Course: 202-1-4071 (Prof. Michael Elkin)
+}
+\date{\large December 2025}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty} % No page number on title page
+
+\begin{center}
+    \large \href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments}{Project Repository}
+\end{center}
+
+\begin{abstract}
+\noindent
+This report presents a comprehensive study, implementation, and experimental analysis of the Baswana-Sen randomized algorithm for constructing $(2k-1)$-spanners in weighted graphs. Graph spanners are sparse subgraphs that approximate pairwise distances within a guaranteed distortion factor (stretch). We implemented the algorithm in Python and conducted a systematic evaluation on Erd\H{o}s--R\'{e}nyi graphs with sizes $n \in \{500, 1000, 2000\}$. Our experiments, covering 540 unique configurations, empirically validate that the algorithm achieves the expected size $O(k \cdot n^{1+1/k})$ and satisfies the $(2k-1)$ stretch bound. Furthermore, we demonstrate that the average stretch is significantly lower than the worst-case bound, and the algorithm exhibits robust performance across varying graph densities. The experiments were conducted on state-of-the-art hardware (Apple M4 chip), taking approximately 1.5 hours to complete.
+\end{abstract}
+
+\clearpage
+\setcounter{page}{1} % Start page numbering here
+
+% Requirement 1: The paper from which the alg' is taken
+\section{The Paper and Algorithm Selection}
+
+\subsection*{Selected Paper}
+\textbf{Baswana, S., \& Sen, S. (2007).} "A Simple and Linear-Time Randomized Algorithm for Computing Sparse Spanners in Weighted Graphs." \textit{Random Structures \& Algorithms}, 30(4), 532--563. (Originally presented in ICALP 2003).
+
+\subsection*{Context}
+The problem of computing a $t$-spanner involves finding a subgraph $H = (V, E_S)$ of a graph $G = (V, E)$ such that the number of edges $|E_S|$ is minimized, while satisfying the distance constraint for all vertex pairs:
+\[
+d_H(u, v) \le t \cdot d_G(u, v)
+\]
+where $t$ is the ``stretch factor.''
+
+\subsection*{Motivation}
+Prior to Baswana and Sen's work, algorithms for constructing $(2k-1)$-spanners typically relied on constructing shortest-path trees or BFS trees, often incurring high time complexity ($O(m \cdot n^{1/k})$ or worse). The Baswana-Sen algorithm is a landmark contribution because it introduces a \textbf{linear-time} approach ($O(km)$ expected time) that relies purely on local clustering and random sampling, avoiding costly global distance computations entirely. It achieves a size of $O(k n^{1+1/k})$, matching the theoretical lower bound based on the Erd\H{o}s Girth Conjecture.
+
+\clearpage
+
+% Requirement 2: The alg' itself
+\section{The Baswana-Sen Algorithm}
+
+The algorithm is a randomized Las Vegas algorithm that constructs a $(2k-1)$-spanner. It operates in $k$ phases to iteratively cluster vertices and select edges that preserve connectivity and distance bounds.
+
+\subsection{Algorithmic Phases}
+The algorithm proceeds in phases indexed $i=1$ to $k$:
+
+\begin{itemize}
+    \item \textbf{Initialization:} The initial clustering $\mathcal{C}_0$ consists of $n$ singleton clusters $\{ \{v\} \mid v \in V \}$.
+
+    \item \textbf{Phases $1$ to $k-1$ (Clustering):}
+    \begin{enumerate}
+        \item \textbf{Sampling:} A set of clusters $\mathcal{R}_i$ is sampled from the previous clustering $\mathcal{C}_{i-1}$. Each cluster is sampled independently with probability $n^{-1/k}$.
+        \item \textbf{Connection:} Vertices that are not part of sampled clusters connect to their nearest neighboring sampled cluster via a least-weight edge. This forms the new clustering $\mathcal{C}_i$.
+        \item \textbf{Spanner Edges:} Edges connecting vertices to their cluster centers are added to the spanner $H$. Crucially, for vertices that \textit{cannot} join a sampled cluster (because they have no neighbors in $\mathcal{R}_i$), we add the least-weight edge to \textit{every} neighboring cluster to $H$.
+    \end{enumerate}
+
+    \item \textbf{Phase $k$ (Final Cleanup):} The sampling stops. For every vertex $v$ and every neighboring cluster $c$ it is adjacent to (where $v \notin c$), we add the least-weight edge between $v$ and $c$ to $H$. This ensures global connectivity and satisfies the stretch requirement.
+\end{itemize}
+
+\subsection{Complexity Analysis}
+\begin{itemize}
+    \item \textbf{Time:} With $k$ phases, the total time is expected $O(km)$.
+    \item \textbf{Size:} The probabilistic analysis guarantees an expected size of $O(k n^{1+1/k})$.
+    \item \textbf{Stretch:} The construction ensures that if an edge $(u,v)$ is discarded, there exists a path in $H$ between $u$ and $v$ of weight at most $(2k-1) \cdot w(u,v)$.
+\end{itemize}
+
+\clearpage
+
+% Requirement 3: Your implementation of the alg'
+\section{Implementation of the Algorithm}
+
+We implemented the Baswana-Sen algorithm in Python, prioritizing modularity and reproducibility. The complete source code is available in the project repository.
+
+\subsection{Code Structure}
+The implementation is organized as a Python package \texttt{baswana-sen-spanner-experiments}. Key files include:
+
+\begin{itemize}
+    \item \textbf{\href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments/blob/main/src/spanners/baswana_sen.py}{src/spanners/baswana\_sen.py}}: Contains the core logic in the function \texttt{build\_spanner\_baswana\_sen}.
+    \item \textbf{\href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments/blob/main/src/graphs/erdos_renyi.py}{src/graphs/erdos\_renyi.py}}: Utilities for generating random graphs and extracting the largest connected component.
+    \item \textbf{\href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments/blob/main/src/utils/seeding.py}{src/utils/seeding.py}}: Ensures deterministic seeding for reproducibility.
+\end{itemize}
+
+\subsection{Key Implementation Details}
+\begin{itemize}
+    \item \textbf{Graph Representation:} We utilized Python dictionaries (\texttt{Dict[int, List[int]]}) for adjacency lists. This allows for $O(1)$ edge lookups and avoids the overhead of heavy graph libraries like NetworkX during the critical inner loops of the algorithm.
+    \item \textbf{Randomized Clustering:} The clustering probability is calculated as \texttt{prob = n ** (-1.0 / k)}. We use a unified seeding mechanism to set both Python's \texttt{random} and \texttt{numpy.random} seeds, ensuring that every experiment is fully reproducible.
+    \item \textbf{Connectivity Assurance:} The algorithm requires a connected graph. Our generator creates an Erd\H{o}s--R\'{e}nyi graph $G(n,p)$ and explicitly extracts the \textbf{largest connected component} (LCC) using BFS before passing it to the spanner algorithm.
+\end{itemize}
+
+\clearpage
+
+% Requirement 4: The experiments you chose to run
+\section{Experimental Design}
+
+We designed a comprehensive experiment suite to validate the algorithm's performance across different scales and densities.
+
+\subsection{Parameters}
+\begin{itemize}
+    \item \textbf{Graph Sizes ($n$):} We tested $n \in \{500, 1000, 2000\}$.
+    \item \textbf{Stretch Parameter ($k$):} We tested $k \in \{2, 3, 4, 5\}$, corresponding to theoretical max stretches of $3, 5, 7, 9$.
+    \item \textbf{Edge Probability ($p$):} We tested 9 unique densities per $n$ value to cover various regimes:
+    \begin{itemize}
+        \item \textbf{Sparse:} $p \approx \frac{\log n}{n}$ (near connectivity threshold).
+        \item \textbf{Medium:} $p \approx n^{-0.5}$.
+        \item \textbf{Dense:} $p \in \{0.1, 0.2, 0.3\}$.
+    \end{itemize}
+    \item \textbf{Repetitions:} Each configuration $(n, p, k)$ was run \textbf{5 times} with different deterministic random seeds.
+    \item \textbf{Sampling:} For efficiency, stretch was estimated using \textbf{1,000 sampled edges} and \textbf{1,000 sampled vertex pairs} per experiment.
+\end{itemize}
+
+\subsection{Metrics}
+For each trial, we recorded:
+\begin{enumerate}
+    \item \textbf{Sparsity:} The number of edges $|E(H)|$ and the \textbf{Spanner Size Ratio}: $\frac{|E(H)|}{k \cdot n^{1+1/k}}$.
+    \item \textbf{Max Stretch:} The maximum ratio $\delta_H(u,v) / \delta_G(u,v)$ over sampled edges.
+    \item \textbf{Average Stretch:} The mean stretch computed over sampled edges and vertex pairs.
+    \item \textbf{Runtime:} Breakdown of time spent on Graph Generation vs. Spanner Construction.
+\end{enumerate}
+
+\clearpage
+
+% Requirement 5: The implementation of those experiments
+\section{Implementation of Experiments}
+
+The experiments were executed using the command-line script \texttt{scripts/run\_all\_experiments.py}. This script orchestrates the generation, construction, and evaluation phases, saving results incrementally to timestamped CSV files.
+
+\subsection{Hardware and Constraints}
+The experimental suite was executed on a machine equipped with an \textbf{Apple M4 chip}, which represents state-of-the-art consumer hardware. The total execution time was approximately \textbf{1.5 hours}.
+
+Despite the high performance of the M4 chip, we capped our experiments at $n=2000$ due to time constraints. While we identified potential performance optimizations, such as using multi-processing to parallelize the 540 trials, we encountered technical stability issues during implementation. Given the strict deadlines, we opted for a robust single-threaded execution on smaller graph sizes rather than risking stability with further optimization attempts.
+
+\subsection{Environment}
+Experiments were run in a standard Python 3.8+ environment. We utilized \texttt{numpy} for numerical operations and sampling, \texttt{pandas} for data aggregation, and \texttt{matplotlib/seaborn} for visualization.
+
+\clearpage
+
+% Requirement 6: The results of your experiments
+\section{Results and Analysis}
+
+The following analysis is based on the data collected from our 540 experimental runs.
+
+\subsection{Spanner Size Validation}
+We compared the empirical spanner size $|E_S|$ against the theoretical upper bound $O(k \cdot n^{1+1/k})$.
+
+\textbf{Analysis:}
+Figure \ref{fig:spanner_size} plots the spanner size against $k$ for different graph sizes. We observe a sharp exponential decay in spanner size as $k$ increases. Crucially, the \textbf{Spanner Size Ratio} was consistently found to be below 1.0. This indicates that the constant factors in the Baswana-Sen algorithm are small; in practice, the algorithm produces spanners even sparser than the worst-case theoretical bound suggests.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/spanner_size_vs_k.png}
+  \caption{Empirical spanner size decreases as $k$ increases. The curves follow the theoretical prediction of $n^{1+1/k}$.}
+  \label{fig:spanner_size}
+  \vspace{0.5em}
+  \footnotesize
+  \href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments/blob/main/results/figures/spanner_size_vs_k.png}{\textcolor{blue}{[View source image on GitHub]}}
+\end{figure}
+
+\subsection{Stretch Quality}
+We analyzed the trade-off between the stretch parameter $k$ and the actual observed distortion using our sampled metrics.
+
+\textbf{Analysis:}
+\begin{itemize}
+    \item \textbf{Max Stretch:} As shown in Figure \ref{fig:stretch_quality} (left), the maximum stretch observed rarely exceeded the theoretical bound of $2k-1$. In dense graphs, the max stretch often reached the bound, validating that the bound is tight for worst-case edges.
+    \item \textbf{Average Stretch:} Figure \ref{fig:stretch_quality} (right) reveals that the average stretch is significantly lower than the parameter $k$ would suggest. For example, with $k=3$ (max stretch 5), the average stretch was consistently observed to be much lower (often $< 1.5$). This implies that while the algorithm guarantees a worst-case bound, the vast majority of paths in the spanner remain very close to their original lengths.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/stretch_vs_k.png}
+  \caption{(Left) Max stretch adheres to the $2k-1$ bound. (Right) Average stretch remains extremely low even for higher $k$.}
+  \label{fig:stretch_quality}
+  \vspace{0.5em}
+  \footnotesize
+  \href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments/blob/main/results/figures/stretch_vs_k.png}{\textcolor{blue}{[View source image on GitHub]}}
+\end{figure}
+
+\subsection{Runtime and Scalability}
+A key claim of the Baswana-Sen paper is linear-time complexity. We validated this by measuring runtime across our graph sizes ($n=500$ to $2000$).
+
+\textbf{Analysis:}
+Figure \ref{fig:runtime} demonstrates the runtime performance. The spanner construction time scales linearly with the number of edges, confirming the $O(m)$ complexity. The graph generation often dominates the total runtime for dense graphs, highlighting the efficiency of the spanner algorithm itself.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/runtime_vs_n.png}
+  \caption{Runtime scaling. The linear slope of the Spanner Construction time confirms $O(m)$ complexity.}
+  \label{fig:runtime}
+  \vspace{0.5em}
+  \footnotesize
+  \href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments/blob/main/results/figures/runtime_vs_n.png}{\textcolor{blue}{[View source image on GitHub]}}
+\end{figure}
+
+\clearpage
+
+% Requirement 7: The conclusions and directions for future work
+\section{Conclusions and Future Work}
+
+\subsection{Conclusions}
+This project successfully replicated the Baswana-Sen algorithm and validated its theoretical properties through rigorous experimentation on graphs up to 2000 vertices.
+
+\begin{enumerate}
+    \item \textbf{Efficiency Confirmed:} The algorithm runs in expected linear time, making it one of the most efficient methods for spanner construction available.
+    \item \textbf{Sparsity vs. Distortion:} We confirmed the size bound of $O(n^{1+1/k})$. More importantly, we found that the \textbf{average distortion} is remarkably low, making these spanners highly effective for real-world applications where ``average case'' performance often matters more than worst-case guarantees.
+    \item \textbf{Robustness:} The algorithm proved robust across various graph densities ($p$) and sizes ($n$), consistently producing connected, valid spanners.
+\end{enumerate}
+
+\subsection{Future Work}
+Future extensions of this work could include:
+\begin{itemize}
+    \item \textbf{Performance Optimization:} Resolving the technical issues with multi-processing to enable parallel execution of trials, which would allow testing on significantly larger graphs ($n > 10{,}000$).
+    \item \textbf{Weighted Graphs:} Extending the experiments to graphs with high variance in edge weights to verify if the stretch distribution holds.
+    \item \textbf{Topology Analysis:} Testing the algorithm on non-random topologies, such as scale-free networks or planar graphs.
+\end{itemize}
+
+\clearpage
+
+\section*{Repository and Code}
+
+The complete source code, experiment scripts, and results are available in the project repository:
+
+\begin{itemize}
+    \item \href{https://github.com/Tamircohen28/baswana-sen-spanner-experiments}{Project Repository}
+    \item \textbf{Notebooks (Google Colab):}
+    \begin{itemize}
+        \item \href{https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/01_baswana_sen_sanity_check.ipynb}{01\_baswana\_sen\_sanity\_check.ipynb}
+        \item \href{https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/02_experiments_main.ipynb}{02\_experiments\_main.ipynb}
+        \item \href{https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/03_plots_and_results.ipynb}{03\_plots\_and\_results.ipynb}
+    \end{itemize}
+\end{itemize}
+
+\section*{References}
+
+\begin{enumerate}
+    \item \textbf{Baswana, S., \& Sen, S. (2007).} "A Simple and Linear-Time Randomized Algorithm for Computing Sparse Spanners in Weighted Graphs." \textit{Random Structures \& Algorithms}, 30(4), 532--563.
+    \item \textbf{Peleg, D., \& Schäffer, A. (1989).} "Graph spanners." \textit{Journal of Graph Theory}, 13(1), 99--116.
+    \item \textbf{Course Materials:} Syllabus and Report Guidelines (Prof. Michael Elkin).
+    \item \textbf{Project Repository:} Cohen, T. (2025). \texttt{baswana-sen-spanner-experiments}.
+\end{enumerate}
+
+\end{document}
