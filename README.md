@@ -36,13 +36,16 @@ We evaluated the Baswana-Sen algorithm on Erdős–Rényi random graphs G(n,p), 
 
 ### Parameters Tested
 
-- **Graph sizes (n)**: 500, 1000, 2000, 5000 vertices
-- **Edge probabilities (p)**: We tested multiple densities:
+- **Graph sizes (n)**: 500, 1000, 2000 vertices
+- **Edge probabilities (p)**: We tested multiple densities (computed per n value):
   - Sparse: log(n)/n (near connectivity threshold)
   - Medium: n^(-1/2)
   - Dense: 0.1, 0.2, 0.3
-- **Spanner parameters (k)**: 1, 2, 3, 4, 5
-- **Repetitions**: Multiple runs per configuration for statistical reliability
+  - This results in 9 unique p values across all n values
+- **Spanner parameters (k)**: 2, 3, 4, 5
+  - Note: k must be an integer >= 2 and <= log(n) for each n value
+- **Repetitions**: 5 runs per configuration for statistical reliability
+- **Stretch samples**: 1000 sampled edges and 1000 sampled vertex pairs per experiment
 
 ### What We Measured
 
@@ -66,7 +69,9 @@ For each experiment, we recorded:
 
 ## Results
 
-The experimental results are stored in `data/processed/experiments_full.csv` and can be analyzed using the provided Jupyter notebooks. Key findings include:
+The experimental results are stored in timestamped CSV files in `data/processed/` (e.g., `experiments-results-DD-MM-YYYY-HH-MM-SS.csv`) and can be analyzed using the provided Jupyter notebooks. The most recent results file contains 540 experiments (3 n values × 9 p values × 4 k values × 5 repetitions).
+
+Key findings include:
 
 - **Spanner size**: Empirical spanner sizes compared to the theoretical bound O(k·n^(1+1/k))
 - **Stretch bounds**: Verification that the (2k-1) stretch bound is satisfied
@@ -97,7 +102,12 @@ Run the full experiment suite:
 python scripts/run_all_experiments.py
 ```
 
-This will generate results in `data/processed/experiments_full.csv`. The script supports various parameters (see `--help` for details), but the defaults provide a comprehensive evaluation.
+This will generate results in `data/processed/experiments-results-DD-MM-YYYY-HH-MM-SS.csv` (timestamped filename). The script supports various parameters (see `--help` for details). The default configuration runs:
+- n values: [500, 1000, 2000]
+- p values: log(n)/n, n^(-1/2), 0.1, 0.2, 0.3 (computed per n value)
+- k values: [2, 3, 4, 5] (automatically adjusted to be valid for all n values)
+- repetitions: 5
+- stretch samples: 1000
 
 ### Analyzing Results
 
@@ -123,7 +133,9 @@ jupyter notebook
 - **Graph representation**: Custom adjacency lists for efficiency with large graphs
 - **Unweighted graphs**: Focus on unweighted graphs using BFS for distance computation
 - **Deterministic seeding**: All random operations use deterministic seeds for reproducibility
-- **Sampling for stretch**: For performance, we sample edges and vertex pairs rather than computing exact stretch for all pairs
+- **Sampling for stretch**: For performance, we sample 1000 edges and 1000 vertex pairs per experiment rather than computing exact stretch for all pairs
+- **k parameter constraints**: The algorithm requires k >= 2 and k <= log(n) for each graph size n
+- **Incremental saving**: Results are saved incrementally to CSV files during execution to prevent data loss
 
 ### Reproducibility
 
@@ -153,12 +165,14 @@ baswana-sen-spanner-experiments/
 
 ## Dependencies
 
-- numpy, scipy: Numerical computations
-- pandas: Data analysis
-- matplotlib: Plotting
-- jupyter/jupyterlab: Interactive notebooks
-- networkx: Graph utilities (for visualization only)
-- tqdm: Progress bars
+- numpy>=1.24.0: Numerical computations
+- scipy>=1.10.0: Scientific computing
+- pandas>=2.0.0: Data analysis
+- matplotlib>=3.7.0: Plotting
+- seaborn>=0.12.0: Statistical visualizations
+- jupyter>=1.0.0, jupyterlab>=4.0.0: Interactive notebooks
+- networkx>=3.0: Graph utilities (for visualization only)
+- tqdm>=4.65.0: Progress bars
 
 See `requirements.txt` for exact versions.
 
