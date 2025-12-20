@@ -11,6 +11,8 @@ This work is part of the Mini-Project on Low-Distortion Embeddings (BGU).
 
 This project presents an experimental evaluation of the **Baswana-Sen randomized algorithm** for constructing **(2k-1)-spanners** on Erdős–Rényi random graphs. A spanner is a sparse subgraph that preserves approximate distances, and the Baswana-Sen algorithm is a well-known randomized approach that achieves a good trade-off between sparsity and stretch.
 
+The project also includes a comparison study against the deterministic **Greedy Spanner** algorithm (Althöfer et al., 1993) as a baseline, demonstrating the trade-offs between randomized and deterministic approaches.
+
 ### What is a Spanner?
 
 Given a graph G, a (2k-1)-spanner H is a subgraph of G such that for any two vertices u and v, the distance in H is at most (2k-1) times the distance in G. The parameter k controls the trade-off: larger k values produce sparser spanners (fewer edges) but with higher stretch (distance distortion).
@@ -109,13 +111,24 @@ This will generate results in `data/processed/experiments-results-DD-MM-YYYY-HH-
 - repetitions: 5
 - stretch samples: 1000
 
+### Baseline Comparison
+
+To compare Baswana-Sen against the deterministic Greedy Spanner baseline:
+
+```bash
+python scripts/run_comparison.py
+```
+
+Or use the interactive notebook `04_greedy_comparison.ipynb` for a more detailed analysis and LaTeX table generation. The comparison runs on smaller graphs (n ≤ 1000) due to the Greedy algorithm's O(m·n) complexity.
+
 ### Analyzing Results
 
-Three Jupyter notebooks are provided:
+Four Jupyter notebooks are provided:
 
-1. **`01_baswana_sen_sanity_check.ipynb`**: Verification that the algorithm works correctly on small examples
-2. **`02_experiments_main.ipynb`**: Load and analyze experiment results, compute summary statistics
-3. **`03_plots_and_results.ipynb`**: Generate publication-ready figures and tables
+1. **[`01_baswana_sen_sanity_check.ipynb`](https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/01_baswana_sen_sanity_check.ipynb)**: Verification that the algorithm works correctly on small examples
+2. **[`02_experiments_main.ipynb`](https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/02_experiments_main.ipynb)**: Load and analyze experiment results, compute summary statistics
+3. **[`03_plots_and_results.ipynb`](https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/03_plots_and_results.ipynb)**: Generate publication-ready figures and tables
+4. **[`04_greedy_comparison.ipynb`](https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/04_greedy_comparison.ipynb)**: Compare Baswana-Sen against the Greedy Spanner baseline (Althöfer et al., 1993) on smaller graphs
 
 Start Jupyter:
 ```bash
@@ -136,6 +149,7 @@ jupyter notebook
 - **Sampling for stretch**: For performance, we sample 1000 edges and 1000 vertex pairs per experiment rather than computing exact stretch for all pairs
 - **k parameter constraints**: The algorithm requires k >= 2 and k <= log(n) for each graph size n
 - **Incremental saving**: Results are saved incrementally to CSV files during execution to prevent data loss
+- **Baseline comparison**: Includes Greedy Spanner implementation for comparative analysis, though it's limited to smaller graphs due to O(m·n) complexity
 
 ### Reproducibility
 
@@ -152,11 +166,17 @@ All experiments use deterministic random seeds. To reproduce exact results:
 baswana-sen-spanner-experiments/
 ├── src/                    # Implementation code
 │   ├── graphs/            # Graph generation (Erdős–Rényi)
-│   ├── spanners/          # Baswana-Sen algorithm
+│   ├── spanners/          # Spanner algorithms (Baswana-Sen, Greedy)
 │   ├── evaluation/        # Experiment orchestration and metrics
 │   └── utils/            # Utilities (seeding, timing)
 ├── notebooks/            # Analysis notebooks
-├── scripts/              # Experiment runner
+│   ├── 01_baswana_sen_sanity_check.ipynb
+│   ├── 02_experiments_main.ipynb
+│   ├── 03_plots_and_results.ipynb
+│   └── 04_greedy_comparison.ipynb
+├── scripts/              # Experiment runners
+│   ├── run_all_experiments.py
+│   └── run_comparison.py
 ├── data/processed/       # Experiment results (CSV)
 └── requirements.txt      # Python dependencies
 ```

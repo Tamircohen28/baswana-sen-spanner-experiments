@@ -61,14 +61,19 @@
 \lstset{style=mystyle}
 
 % Title Page Setup
+% \title{
+%     \vspace{2cm}
+%     \textbf{\Huge Mini-Project on Low-Distortion Embeddings:\\[0.5em]
+%     The Baswana-Sen Algorithm for Sparse Spanners}
+% }
 \title{
     \vspace{2cm}
-    \textbf{\Huge Mini-Project on Low-Distortion Embeddings:\\[0.5em]
-    The Baswana-Sen Algorithm for Sparse Spanners}
+    \textbf{\Huge The Baswana-Sen Algorithm for Computing Sparse Spanners\\[0.5em]}
 }
 \author{
     \Large \textbf{Tamir Cohen} \\[0.5em]
-    \large Course: 202-1-4071 (Prof. Michael Elkin)
+    \large Mini-Project on Low-Distortion Embeddings\\
+    (By Prof. Michael Elkin)
 }
 \date{\large December 2025}
 
@@ -206,12 +211,12 @@ The experiments were executed using the command-line script \texttt{scripts/run\
 \subsection{Hardware and Constraints}
 The experimental suite was executed on a machine equipped with an \textbf{Apple M4 chip}, which represents state-of-the-art consumer hardware. The total execution time was approximately \textbf{1.5 hours}.
 
-Despite the high performance of the M4 chip, we capped our experiments at $n=2000$ due to time constraints. While we identified potential performance optimizations, such as using multi-processing to parallelize the 540 trials, we encountered technical stability issues during implementation. Given the strict deadlines, we opted for a robust single-threaded execution on smaller graph sizes rather than risking stability with further optimization attempts.
+Despite the high performance of the M4 chip, we capped our experiments at $n=2000$ due to time constraints. While we identified potential performance optimizations, such as using multi-processing to parallelize the 540 trials, we encountered technical stability issues during implementation. Given the strict deadlines, we opted for robust single-threaded execution on smaller graph sizes rather than risking stability with further optimization attempts.
 
-For the comparison with the Greedy Spanner, we utilized a specialized notebook (\texttt{notebooks/04\_greedy\_comparison.ipynb}). The Greedy experiments were restricted to $n \le 1000$ because the $O(mn)$ complexity of the Greedy algorithm made it infeasible for larger dense graphs within a reasonable timeframe.
+For comparison with Greedy Spanner, we utilized a specialized \href{https://colab.research.google.com/github/Tamircohen28/baswana-sen-spanner-experiments/blob/main/notebooks/04_greedy_comparison.ipynb}{notebook}. The Greedy experiments were restricted to $n \le 1000$ because the complexity $O(mn)$ of the Greedy algorithm made it infeasible for larger dense graphs within a reasonable time frame.
 
 \subsection{Environment}
-Experiments were run in a standard Python 3.8+ environment. We utilized \texttt{numpy} for numerical operations and sampling, \texttt{pandas} for data aggregation, and \texttt{matplotlib} for visualization.
+Experiments were run in a standard Python 3.8+ environment.We utilized \texttt{numpy} for numerical operations and sampling, \texttt{pandas} for data aggregation, and \texttt{matplotlib} for visualization.
 
 \clearpage
 
