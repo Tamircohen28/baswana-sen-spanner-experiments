@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify setup
+        run: python verify_setup.py
+
+      - name: Smoke tests
+        run: python -m pytest tests/ -q
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan for high-signal secret patterns
+        run: |
+          if grep -rE '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36})' --include='*.json' --include='*.yml' .; then
+            exit 1
+          fi
+          echo "No secrets found"

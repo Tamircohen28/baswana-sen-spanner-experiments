@@ -1,9 +1,77 @@
+<p align="center">
+  <img src="assets/banner.svg" alt="Baswana-Sen Spanner Experiments" width="600" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/Tamircohen28">
+    <img src="https://img.shields.io/badge/author-Tamir%20Cohen-181717?logo=github" alt="Author" />
+  </a>
+  <a href="https://github.com/Tamircohen28/baswana-sen-spanner-experiments/actions/workflows/ci.yml">
+    <img src="https://github.com/Tamircohen28/baswana-sen-spanner-experiments/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" />
+  </a>
+  <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="Version" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white" alt="Python 3.8+" />
+</p>
+
+<p align="center">
+  <a href="docs/engineering/build-and-release/platform-targets.json">
+    <img src="https://img.shields.io/badge/Claude%20Code-2.0.0-blueviolet" alt="Claude Code" />
+  </a>
+  <a href="docs/engineering/build-and-release/platform-targets.json">
+    <img src="https://img.shields.io/badge/Cursor-0.45.0-000000" alt="Cursor" />
+  </a>
+  <a href="docs/engineering/build-and-release/platform-targets.json">
+    <img src="https://img.shields.io/badge/Codex-0.40.0-412991" alt="Codex" />
+  </a>
+</p>
+
 # Experimental Evaluation of the Baswana-Sen Spanner Algorithm
 
 **Author:** Tamir Cohen  
 **Email:** tamirnoy@post.bgu.ac.il
 
 This work is part of the Mini-Project on Low-Distortion Embeddings (BGU).
+
+---
+
+## Prerequisites
+
+- Python 3.8 or higher (3.12 recommended)
+- `make` (optional but preferred)
+
+## Quick Start
+
+```bash
+make install
+make test
+python scripts/run_all_experiments.py
+```
+
+### Claude Code
+
+Open in Claude Code — `CLAUDE.md` imports `AGENTS.md`.
+
+### Cursor
+
+Rules live in `.cursor/rules/000-project.mdc` (points to `AGENTS.md`).
+
+### Codex
+
+Codex reads root `AGENTS.md` for repo policy.
+
+## Documentation
+
+See [docs/README.md](docs/README.md).
+
+## Contributing
+
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ---
 
@@ -90,11 +158,11 @@ Detailed analysis and visualizations are available in the notebooks (see below).
 1. Install Python 3.8 or higher
 2. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   make install
    ```
 3. Verify setup:
    ```bash
-   python verify_setup.py
+   make test
    ```
 
 ### Running Experiments
@@ -168,17 +236,12 @@ baswana-sen-spanner-experiments/
 │   ├── graphs/            # Graph generation (Erdős–Rényi)
 │   ├── spanners/          # Spanner algorithms (Baswana-Sen, Greedy)
 │   ├── evaluation/        # Experiment orchestration and metrics
-│   └── utils/            # Utilities (seeding, timing)
-├── notebooks/            # Analysis notebooks
-│   ├── 01_baswana_sen_sanity_check.ipynb
-│   ├── 02_experiments_main.ipynb
-│   ├── 03_plots_and_results.ipynb
-│   └── 04_greedy_comparison.ipynb
-├── scripts/              # Experiment runners
-│   ├── run_all_experiments.py
-│   └── run_comparison.py
-├── data/processed/       # Experiment results (CSV)
-└── requirements.txt      # Python dependencies
+│   └── utils/             # Utilities (seeding, timing)
+├── notebooks/             # Analysis notebooks
+├── scripts/               # Experiment runners
+├── data/processed/        # Experiment results (CSV)
+├── docs/                  # Documentation
+└── requirements.txt       # Python dependencies
 ```
 
 ---
@@ -193,6 +256,7 @@ baswana-sen-spanner-experiments/
 - jupyter>=1.0.0, jupyterlab>=4.0.0: Interactive notebooks
 - networkx>=3.0: Graph utilities (for visualization only)
 - tqdm>=4.65.0: Progress bars
+- pytest>=8.0.0: Smoke tests
 
 See `requirements.txt` for exact versions.
 
@@ -200,4 +264,4 @@ See `requirements.txt` for exact versions.
 
 ## License
 
-See `LICENSE` file for details.
+MIT — see [LICENSE](LICENSE).
